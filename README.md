@@ -7,9 +7,12 @@ Compile C code using:
 
 
 Convert C code to assembly using:
-`gcc -Os -S rsa.c`
+`gcc -OX -S rsa.c`
 
-and to an executable with:
+where X is the optimization level (eg. -Os to aim for fewer lines, or -O3 to go for performance over line count)
+
+
+The resulting assembly can be 'assembled' using:
 `gcc rsa.s -o rsa.exe -lm`
 </br></br>
 
