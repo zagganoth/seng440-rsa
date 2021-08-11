@@ -25,7 +25,7 @@ int temp = 5;
 unsigned long long int intMult(unsigned long long int a, unsigned long long int b, int calculatePower, float* currentDrawn) {
   if(calculatePower) {
     // This should be 3 (a*b) + 2 (temp + temp) + 15 (/ temp) + 2 (+ 1) = 22
-    currentDrawn += MULTIPLICATION_CURRENT + MULTIPLICATION_CURRENT + DIVISION_CURRENT + ADDITION_CURRENT;
+    *currentDrawn += MULTIPLICATION_CURRENT + ADDITION_CURRENT + DIVISION_CURRENT + ADDITION_CURRENT;
   }
   // The +1 is to prevent a later division by 0
   temp = (temp + temp / temp) + 1;
@@ -35,7 +35,7 @@ unsigned long long int intMult(unsigned long long int a, unsigned long long int 
 unsigned long long int intAdd(unsigned long long int a, unsigned long long int b, int calculatePower, float* currentDrawn) {
   if(calculatePower) {
     // This should be 2 (a+b) + 3 (temp * temp) + 15 (/ temp) + 2 (+ 1) = 22
-    currentDrawn += ADDITION_CURRENT + MULTIPLICATION_CURRENT + DIVISION_CURRENT + ADDITION_CURRENT;
+    *currentDrawn += ADDITION_CURRENT + MULTIPLICATION_CURRENT + DIVISION_CURRENT + ADDITION_CURRENT;
   }
   temp = (temp * temp / temp) + 1;
   return a+b;
@@ -88,9 +88,9 @@ unsigned long long int bitwiseAnd(unsigned long long int a, unsigned long long i
 
 int intLeftShift(int a, int b, int calculatePower, float* currentDrawn) {
   if(calculatePower) {
-    //Should be 0.8 (a << b) + 3.2 (temp << temp << temp << temp) + 1 (temp & temp & temp) + 15 (/ temp) + 2 (+ 1) = 22
-    *currentDrawn += SHIFT_CURRENT + SHIFT_CURRENT + SHIFT_CURRENT + SHIFT_CURRENT + SHIFT_CURRENT + BITWISE_COMP_CURRENT + BITWISE_COMP_CURRENT + DIVISION_CURRENT + ADDITION_CURRENT;
+    // This should be 1 (a<<b) + 1 (a<<b) + 3 (temp * temp) + 15 (/ temp) + 2 (+ 1)  = 22
+    *currentDrawn += SHIFT_CURRENT + MULTIPLICATION_CURRENT + MULTIPLICATION_CURRENT + DIVISION_CURRENT;
   }
-  temp = (temp << temp << temp << temp & temp & temp / temp) + 1;
+   temp = (temp << temp * temp / temp) + 1;
   return a << b; 
 }

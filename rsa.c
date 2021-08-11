@@ -115,8 +115,8 @@ int main(int argc, char** argv) {
     int msgLen = strlen(message);
 	
 	// Check against message length
-    if(msgLen > 10) {
-		printf("This program only supports up to a 10 character message. Please try again with a shorter message\n");
+    if(msgLen > 5) {
+		printf("This program only supports up to a 5 character message. Please try again with a shorter message\n");
 		return EXIT_FAILURE;
     }
     
