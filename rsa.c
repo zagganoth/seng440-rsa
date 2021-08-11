@@ -105,83 +105,88 @@ char* decodeMessage(unsigned long long int encodedMessage, int messageLen) {
 
 int main(int argc, char** argv) {
 	
-	// Ensure valid number of arguments
+  // Ensure valid number of arguments
 	if(argc < 2) {
 		printf("Missing message, please include message as argument\n");
 		return EXIT_FAILURE;
-    }
+  }
 	// Store provided message
-    char *message = argv[1];
-    int msgLen = strlen(message);
+  char *message = argv[1];
+  int msgLen = strlen(message);
 	
 	// Check against message length
-    if(msgLen > 4) {
-		printf("This program only supports up to a 4 character message. Please try again with a shorter message\n");
+  if(msgLen > 5) {
+		printf("This program only supports up to a 5 character message. Please try again with a shorter message\n");
 		return EXIT_FAILURE;
-    }
-    
+  }
+
+  // Convert given message from char* to int
+  unsigned long long int encodedMessage = encodeMessage(message, msgLen);
 	// Seed random number generator with current time. From: https://www.geeksforgeeks.org/generating-random-number-range-c/
 	srand(time(0));
 
-    int P, Q, 	// The two random primes to be chosen
-		PQ = 0,	// Their product
-		phi, 	// The result of (P-1)*(Q-1)
-		E = 2,	// The Encryption key
-		D = 0,	// The Decryption key
-		x,		// Temporary value used when computing 
-		fakeD;	// A random incorrect decryption key
+  int P, Q, 	// The two random primes to be chosen
+  PQ = 0,	// Their product
+  phi, 	// The result of (P-1)*(Q-1)
+  E = 2,	// The Encryption key
+  D = 0,	// The Decryption key
+  x,		// Temporary value used when computing 
+  fakeD;	// A random incorrect decryption key
 
-    while(E >= PQ || D < 0) {
-		// Get random primes
-		P = primes[rand() % (number_of_primes)];
-		Q = primes[rand() % (number_of_primes)];
+  while(E >= PQ || D < 0) {
+    do {
+      // Get random primes
+      P = primes[rand() % (number_of_primes)];
+      Q = primes[rand() % (number_of_primes)];
 
-		// Precompute products:
-		PQ = P * Q;
-		phi = (P-1)*(Q-1);
+      // Precompute products:
+      PQ = P * Q;
+    } while(PQ < encodedMessage || P == Q);
+    phi = (P-1)*(Q-1);
 
-		// Compute E
-		for(E = 2; gcd(E, phi) != 1 || E % 2 == 0; E++){};
+    // Compute E
+    for(E = 2; gcd(E, phi) != 1 || E % 2 == 0; E++){};
 
-		// Compute D
-		for(x = 0; (((x * phi) + 1) % E) != 0 || D == phi; x++){};
-		D = ((x * phi) + 1) / E;
+    // Compute D
+    for(x = 0; (((x * phi) + 1) % E) != 0 || D == phi; x++){};
+    D = ((x * phi) + 1) / E;
 	}
 	
-    // Generate an incorrect decryption key between 0 and 3*D /2 
-    fakeD = (rand() % (3*D /2));
+  // Generate an incorrect decryption key between 0 and 3*D /2 
+  fakeD = (rand() % (3*D /2));
 	
 	printf("\nGenerated RSA values:\nP: %d Q: %d E: %d\n", P, Q, E);
 	printf("Correct key: %d\nIncorrect Key: %d\n", D, fakeD);
-	
-	// Convert given message from char* to int, then encrypt
-    unsigned long long int encryptedMessage = exponentiateAndMod(encodeMessage(message, msgLen), E, PQ);
+	// Encrypt the encoded message
+  unsigned long long int encryptedMessage = exponentiateAndMod(encodedMessage, E, PQ);
 	
 	// Begin estimating power consumption
 	calculatePower = 1;
 	
 	// Decrypt message using the correct decryption key:
-    unsigned long long int decryptedMessage = exponentiateAndMod(encryptedMessage, D, PQ);
+  unsigned long long int decryptedMessage = exponentiateAndMod(encryptedMessage, D, PQ);
+
 	// Don't estimate power for our decoding (the decryption is already done)
-    calculatePower = 0;
+  calculatePower = 0;
+
 	char* decodedMessage = decodeMessage(decryptedMessage, msgLen);
-    printf("\nPower consumption and message using correct key D:\n%f\n%s\n", currentDrawn, decodedMessage);
+  printf("\nPower consumption and message using correct key D:\n%f\n%s\n", currentDrawn, decodedMessage);
 
 	
 	// Reset and begin estimating power consumption again
 	currentDrawn = 0;
-    calculatePower = 1;
+  calculatePower = 1;
 	free(decodedMessage);
 	
 	// Decrypt message using incorrect decryption key
-    decryptedMessage = exponentiateAndMod(encryptedMessage, fakeD, PQ);
+  decryptedMessage = exponentiateAndMod(encryptedMessage, fakeD, PQ);
 	
 	// Don't estimate power for our decoding (the decryption is already done)
-    calculatePower = 0;
-    decodedMessage = decodeMessage(decryptedMessage, msgLen);
+  calculatePower = 0;
+  decodedMessage = decodeMessage(decryptedMessage, msgLen);
 	printf("\nPower consumption and message using incorrect 'fake' D:\n%f\n%s\n", currentDrawn, decodedMessage);
 	
-    free(decodedMessage);
+  free(decodedMessage);
 
-    return 0;
+  return 0;
 }
