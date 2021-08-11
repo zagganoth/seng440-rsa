@@ -6,11 +6,12 @@
 	.eabi_attribute 24, 1
 	.eabi_attribute 25, 1
 	.eabi_attribute 26, 2
-	.eabi_attribute 30, 4
+	.eabi_attribute 30, 6
 	.eabi_attribute 34, 1
 	.eabi_attribute 18, 4
-	.file	"rsa.c"
+	.file	"rsa_no_logs.c"
 	.text
+	.global	__aeabi_uldivmod
 	.align	2
 	.global	intMult
 	.arch armv7-a
@@ -19,22 +20,38 @@
 	.fpu vfpv3-d16
 	.type	intMult, %function
 intMult:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	mul	r3, r0, r3
-	str	lr, [sp, #-4]!
-	ldr	lr, .L3
-	mla	r3, r2, r1, r3
-	umull	r0, r1, r0, r2
-	ldr	ip, [lr]
-	add	r1, r3, r1
-	add	ip, ip, #2
-	str	ip, [lr]
-	ldr	pc, [sp], #4
-.L4:
-	.align	2
-.L3:
-	.word	.LANCHOR0
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	add	fp, sp, #12
+	sub	sp, sp, #16
+	strd	r0, [fp, #-20]
+	strd	r2, [fp, #-28]
+	ldrd	r0, [fp, #-20]
+	ldrd	r2, [fp, #-28]
+	adds	r4, r0, r2
+	adc	r5, r1, r3
+	ldrd	r2, [fp, #-20]
+	mov	r0, r4
+	mov	r1, r5
+	bl	__aeabi_uldivmod
+	ldr	r3, [fp, #-16]
+	ldr	r2, [fp, #-28]
+	mul	r2, r2, r3
+	ldr	r3, [fp, #-24]
+	ldr	r1, [fp, #-20]
+	mul	r3, r1, r3
+	add	r1, r2, r3
+	ldr	r2, [fp, #-20]
+	ldr	r3, [fp, #-28]
+	umull	r2, r3, r2, r3
+	add	r1, r1, r3
+	mov	r3, r1
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #12
+	@ sp needed
+	pop	{r4, r5, fp, pc}
 	.size	intMult, .-intMult
 	.align	2
 	.global	intAdd
@@ -43,22 +60,39 @@ intMult:
 	.fpu vfpv3-d16
 	.type	intAdd, %function
 intAdd:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	str	lr, [sp, #-4]!
-	ldr	lr, .L7
-	adds	r0, r0, r2
-	ldr	ip, [lr]
-	adc	r1, r1, r3
-	add	ip, ip, #1
-	str	ip, [lr]
-	ldr	pc, [sp], #4
-.L8:
-	.align	2
-.L7:
-	.word	.LANCHOR0
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	add	fp, sp, #12
+	sub	sp, sp, #16
+	strd	r0, [fp, #-20]
+	strd	r2, [fp, #-28]
+	ldr	r3, [fp, #-16]
+	ldr	r2, [fp, #-28]
+	mul	r2, r2, r3
+	ldr	r3, [fp, #-24]
+	ldr	r1, [fp, #-20]
+	mul	r3, r1, r3
+	add	r3, r2, r3
+	ldr	r1, [fp, #-20]
+	ldr	r2, [fp, #-28]
+	umull	r0, r1, r1, r2
+	add	r3, r3, r1
+	mov	r1, r3
+	ldrd	r2, [fp, #-20]
+	bl	__aeabi_uldivmod
+	ldrd	r0, [fp, #-20]
+	ldrd	r2, [fp, #-28]
+	adds	r4, r0, r2
+	adc	r5, r1, r3
+	mov	r2, r4
+	mov	r3, r5
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #12
+	@ sp needed
+	pop	{r4, r5, fp, pc}
 	.size	intAdd, .-intAdd
-	.global	__aeabi_uldivmod
 	.align	2
 	.global	intDivide
 	.syntax unified
@@ -66,20 +100,23 @@ intAdd:
 	.fpu vfpv3-d16
 	.type	intDivide, %function
 intDivide:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, lr}
-	ldr	lr, .L11
-	ldr	ip, [lr]
-	mla	ip, ip, ip, ip
-	add	ip, ip, #1
-	str	ip, [lr]
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #16
+	strd	r0, [fp, #-12]
+	strd	r2, [fp, #-20]
+	ldrd	r2, [fp, #-20]
+	ldrd	r0, [fp, #-12]
 	bl	__aeabi_uldivmod
-	pop	{r4, pc}
-.L12:
-	.align	2
-.L11:
-	.word	.LANCHOR0
+	mov	r2, r0
+	mov	r3, r1
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
 	.size	intDivide, .-intDivide
 	.align	2
 	.global	doubleDivide
@@ -88,20 +125,23 @@ intDivide:
 	.fpu vfpv3-d16
 	.type	doubleDivide, %function
 doubleDivide:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
 	@ link register save eliminated.
-	ldr	r2, .L14
-	vdiv.f64	d0, d0, d1
-	ldr	r3, [r2]
-	mla	r3, r3, r3, r3
-	add	r3, r3, #1
-	str	r3, [r2]
+	str	fp, [sp, #-4]!
+	add	fp, sp, #0
+	sub	sp, sp, #20
+	vstr.64	d0, [fp, #-12]
+	vstr.64	d1, [fp, #-20]
+	vldr.64	d6, [fp, #-12]
+	vldr.64	d7, [fp, #-20]
+	vdiv.f64	d5, d6, d7
+	vmov.f64	d7, d5
+	vmov.f64	d0, d7
+	add	sp, fp, #0
+	@ sp needed
+	ldr	fp, [sp], #4
 	bx	lr
-.L15:
-	.align	2
-.L14:
-	.word	.LANCHOR0
 	.size	doubleDivide, .-doubleDivide
 	.align	2
 	.global	customLog
@@ -110,18 +150,19 @@ doubleDivide:
 	.fpu vfpv3-d16
 	.type	customLog, %function
 customLog:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	@ link register save eliminated.
-	ldr	r2, .L17
-	ldr	r3, [r2]
-	add	r3, r3, #1
-	str	r3, [r2]
-	b	log
-.L18:
-	.align	2
-.L17:
-	.word	.LANCHOR0
+	@ args = 0, pretend = 0, frame = 8
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #8
+	vstr.64	d0, [fp, #-12]
+	vldr.64	d0, [fp, #-12]
+	bl	log
+	vmov.f64	d7, d0
+	vmov.f64	d0, d7
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
 	.size	customLog, .-customLog
 	.align	2
 	.global	intMod
@@ -130,22 +171,21 @@ customLog:
 	.fpu vfpv3-d16
 	.type	intMod, %function
 intMod:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, lr}
-	ldr	lr, .L21
-	ldr	ip, [lr]
-	lsl	ip, ip, #1
-	add	ip, ip, #1
-	str	ip, [lr]
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #16
+	strd	r0, [fp, #-12]
+	strd	r2, [fp, #-20]
+	ldrd	r0, [fp, #-12]
+	ldrd	r2, [fp, #-20]
 	bl	__aeabi_uldivmod
 	mov	r0, r2
 	mov	r1, r3
-	pop	{r4, pc}
-.L22:
-	.align	2
-.L21:
-	.word	.LANCHOR0
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
 	.size	intMod, .-intMod
 	.align	2
 	.global	bitwiseAnd
@@ -154,20 +194,38 @@ intMod:
 	.fpu vfpv3-d16
 	.type	bitwiseAnd, %function
 bitwiseAnd:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	str	lr, [sp, #-4]!
-	ldr	lr, .L25
-	and	r0, r0, r2
-	ldr	ip, [lr]
-	and	r1, r1, r3
-	add	ip, ip, #1
-	str	ip, [lr]
-	ldr	pc, [sp], #4
-.L26:
-	.align	2
-.L25:
-	.word	.LANCHOR0
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	add	fp, sp, #12
+	sub	sp, sp, #16
+	strd	r0, [fp, #-20]
+	strd	r2, [fp, #-28]
+	ldr	r3, [fp, #-16]
+	ldr	r2, [fp, #-28]
+	mul	r2, r2, r3
+	ldr	r3, [fp, #-24]
+	ldr	r1, [fp, #-20]
+	mul	r3, r1, r3
+	add	r3, r2, r3
+	ldr	r1, [fp, #-20]
+	ldr	r2, [fp, #-28]
+	umull	r0, r1, r1, r2
+	add	r3, r3, r1
+	mov	r1, r3
+	ldrd	r2, [fp, #-20]
+	bl	__aeabi_uldivmod
+	ldrd	r0, [fp, #-20]
+	ldrd	r2, [fp, #-28]
+	and	r4, r0, r2
+	and	r5, r1, r3
+	mov	r2, r4
+	mov	r3, r5
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #12
+	@ sp needed
+	pop	{r4, r5, fp, pc}
 	.size	bitwiseAnd, .-bitwiseAnd
 	.align	2
 	.global	intLeftShift
@@ -176,389 +234,26 @@ bitwiseAnd:
 	.fpu vfpv3-d16
 	.type	intLeftShift, %function
 intLeftShift:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	@ link register save eliminated.
-	ldr	r2, .L28
-	lsl	r0, r0, r1
-	ldr	r3, [r2]
-	lsl	r3, r3, r3
-	add	r3, r3, #1
-	str	r3, [r2]
-	bx	lr
-.L29:
-	.align	2
-.L28:
-	.word	.LANCHOR0
-	.size	intLeftShift, .-intLeftShift
-	.global	__aeabi_idivmod
-	.align	2
-	.global	gcd
-	.syntax unified
-	.arm
-	.fpu vfpv3-d16
-	.type	gcd, %function
-gcd:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, lr}
-.L32:
-	mov	r4, r1
-	bl	__aeabi_idivmod
-	cmp	r1, #0
-	mov	r0, r4
-	bne	.L32
-	pop	{r4, pc}
-	.size	gcd, .-gcd
-	.global	__aeabi_d2ulz
-	.align	2
-	.global	exponentiateAndMod
-	.syntax unified
-	.arm
-	.fpu vfpv3-d16
-	.type	exponentiateAndMod, %function
-exponentiateAndMod:
-	@ args = 0, pretend = 0, frame = 24
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	vpush.64	{d8, d9}
-	vmov	s16, r2	@ int
-	sub	sp, sp, #28
-	vcvt.f64.s32	d0, s16
-	mov	r10, r3
-	mov	r7, r0
-	mov	r6, r1
-	bl	customLog
-	vmov.f64	d9, d0
-	vmov.f64	d0, #2.0e+0
-	bl	customLog
-	vdiv.f64	d7, d9, d0
-	mov	r9, #0
-	ldr	r5, .L49
-	vmov	r0, r1, d7
-	ldr	r2, [r5]
-	mov	r4, #1
-	mla	r2, r2, r2, r2
-	add	r2, r2, #2
-	str	r2, [r5]
-	bl	__aeabi_d2ulz
-	mov	r2, r10
-	mov	r8, r9
-	asr	r3, r10, #31
-	strd	r2, [sp]
-	adds	fp, r0, #1
-	str	fp, [sp, #12]
-.L36:
-	ldr	r2, [sp, #12]
-	ldr	r3, [r5]
-	cmp	r9, r2
-	blt	.L38
-	mov	r1, #0
-	bic	r2, fp, fp, asr #31
-.L39:
-	cmp	r2, #89
-	ble	.L40
-	cmp	r1, #0
-	mov	r0, r4
-	mov	r1, r8
-	ldrne	r2, .L49
-	strne	r3, [r2]
-	add	sp, sp, #28
-	@ sp needed
-	vldm	sp!, {d8-d9}
-	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L38:
-	lsl	r3, r3, #1
-	add	r3, r3, #5
-	str	r3, [r5]
-	umull	r0, r1, r7, r7
-	mul	r3, r7, r6
-	add	r1, r1, r3, lsl #1
-	ldrd	r2, [sp]
-	bl	__aeabi_uldivmod
-	mov	r1, r9
-	mov	r0, #1
-	strd	r2, [sp, #16]
-	bl	intLeftShift
-	vmov	r3, s16	@ int
-	tst	r0, r3
-	ldr	r10, [r5]
-	beq	.L37
-	ldrd	r2, [sp]
-	mul	r6, r4, r6
-	umull	r0, r1, r4, r7
-	mla	r8, r7, r8, r6
-	add	r1, r8, r1
-	bl	__aeabi_uldivmod
-	mov	r4, r2
-	mov	r8, r3
-.L37:
-	add	r10, r10, #4
-	lsl	r10, r10, #1
-	str	r10, [r5]
-	add	r9, r9, #1
-	ldr	r7, [sp, #16]
-	ldr	r6, [sp, #20]
-	b	.L36
-.L40:
-	lsl	r3, r3, #1
-	add	r3, r3, #5
-	lsl	r3, r3, r3
-	add	r3, r3, #5
-	add	r2, r2, #1
-	lsl	r3, r3, #1
-	mov	r1, #1
-	b	.L39
-.L50:
-	.align	2
-.L49:
-	.word	.LANCHOR0
-	.size	exponentiateAndMod, .-exponentiateAndMod
-	.align	2
-	.global	encodeMessage
-	.syntax unified
-	.arm
-	.fpu vfpv3-d16
-	.type	encodeMessage, %function
-encodeMessage:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r4, r5, r6, r7, r8, lr}
-	sub	r6, r0, #1
-	mov	r0, #0
-	mov	ip, r1
-	mov	r1, r0
-	ldr	r7, .L57
-.L52:
-	cmp	ip, #0
-	pople	{r4, r5, r6, r7, r8, pc}
-	ldrb	r2, [r6, #1]!	@ zero_extendqisi2
-	sub	r3, r2, #97
-	uxtb	lr, r3
-	cmp	lr, #25
-	bls	.L53
-	mov	r1, r2
-	ldr	r0, .L57+4
-	bl	printf
-	mov	r0, #0
-	bl	exit
-.L53:
-	sub	ip, ip, #1
-	add	lr, r7, ip, lsl #3
-	ldr	lr, [lr, #4]
-	ldr	r2, [r7, ip, lsl #3]
-	mul	lr, r3, lr
-	asr	r5, r3, #31
-	mla	lr, r2, r5, lr
-	mov	r4, r3
-	umull	r2, r3, r2, r3
-	add	r3, lr, r3
-	adds	r0, r0, r2
-	adc	r1, r1, r3
-	b	.L52
-.L58:
-	.align	2
-.L57:
-	.word	.LANCHOR0+8
-	.word	.LC0
-	.size	encodeMessage, .-encodeMessage
-	.align	2
-	.global	decodeMessage
-	.syntax unified
-	.arm
-	.fpu vfpv3-d16
-	.type	decodeMessage, %function
-decodeMessage:
-	@ args = 0, pretend = 0, frame = 0
-	@ frame_needed = 0, uses_anonymous_args = 0
-	push	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	mov	r6, r0
-	add	r0, r2, #1
-	mov	r7, r2
-	mov	r8, r1
-	bl	malloc
-	mov	r5, #0
-	mov	r9, r0
-	ldr	r4, .L63
-	add	r4, r4, r7, lsl #3
-.L60:
-	cmp	r5, r7
-	sub	r4, r4, #8
-	blt	.L61
-	mov	r0, r9
-	pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L61:
-	ldr	fp, [r4]
-	ldr	r10, [r4, #4]
-	mov	r2, fp
-	mov	r3, r10
-	mov	r0, r6
-	mov	r1, r8
-	bl	__aeabi_uldivmod
-	add	r2, r0, #97
-	uxtb	r2, r2
-	strb	r2, [r9, r5]
-	sub	r2, r2, #97
-	mul	r10, r2, r10
-	asr	r1, r2, #31
-	mla	r10, fp, r1, r10
-	umull	r2, r3, r2, fp
-	add	r3, r10, r3
-	subs	r6, r6, r2
-	sbc	r8, r8, r3
-	add	r5, r5, #1
-	b	.L60
-.L64:
-	.align	2
-.L63:
-	.word	.LANCHOR0+8
-	.size	decodeMessage, .-decodeMessage
-	.section	.text.startup,"ax",%progbits
-	.align	2
-	.global	main
-	.syntax unified
-	.arm
-	.fpu vfpv3-d16
-	.type	main, %function
-main:
 	@ args = 0, pretend = 0, frame = 8
-	@ frame_needed = 0, uses_anonymous_args = 0
-	cmp	r0, #1
-	push	{r0, r1, r2, r4, r5, r6, r7, r8, r9, r10, fp, lr}
-	ldrle	r0, .L82
-	ble	.L81
-	ldr	r4, [r1, #4]
-	mov	r0, r4
-	bl	strlen
-	cmp	r0, #5
-	mov	r7, r0
-	bls	.L68
-	ldr	r0, .L82+4
-.L81:
-	bl	puts
-	mov	r6, #1
-.L65:
-	mov	r0, r6
-	add	sp, sp, #12
+	@ frame_needed = 1, uses_anonymous_args = 0
+	@ link register save eliminated.
+	str	fp, [sp, #-4]!
+	add	fp, sp, #0
+	sub	sp, sp, #12
+	str	r0, [fp, #-8]
+	str	r1, [fp, #-12]
+	ldr	r2, [fp, #-8]
+	ldr	r3, [fp, #-12]
+	lsl	r3, r2, r3
+	mov	r0, r3
+	add	sp, fp, #0
 	@ sp needed
-	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
-.L68:
-	mov	r1, r0
-	mov	r0, r4
-	bl	encodeMessage
-	strd	r0, [sp]
-	mov	r0, #0
-	bl	time
-	bl	srand
-	mov	r4, #0
-	ldr	r10, .L82+8
-.L69:
-	bl	rand
-	ldr	r1, [r10, #396]
-	bl	__aeabi_idivmod
-	add	r1, r10, r1, lsl #2
-	ldr	r6, [r1, #96]
-	bl	rand
-	ldr	r1, [r10, #396]
-	bl	__aeabi_idivmod
-	ldrd	r8, [sp]
-	add	r1, r10, r1, lsl #2
-	ldr	r1, [r1, #96]
-	mul	r5, r1, r6
-	asr	r3, r5, #31
-	cmp	r3, r9
-	cmpeq	r5, r8
-	movcc	r3, #1
-	movcs	r3, #0
-	cmp	r6, r1
-	orreq	r3, r3, #1
-	cmp	r3, #0
-	bne	.L69
-	mov	fp, #2
-	sub	r6, r6, #1
-	sub	r3, r1, #1
-	mul	r8, r3, r6
-.L71:
-	mov	r9, r8
-	mov	r0, fp
-.L72:
-	mov	r1, r9
-	bl	__aeabi_idivmod
-	subs	r6, r1, #0
-	mov	r0, r9
-	bne	.L75
-	cmp	r9, #1
-	bne	.L73
-	ands	r9, fp, #1
-	beq	.L73
-.L74:
-	mov	r0, r9
-	mov	r1, fp
-	bl	__aeabi_idivmod
-	adds	r1, r1, #0
-	movne	r1, #1
-	cmp	r8, r4
-	orreq	r1, r1, #1
-	cmp	r1, #0
-	add	r9, r9, r8
-	bne	.L74
-	cmp	fp, r5
-	movlt	r3, #0
-	movge	r3, #1
-	orrs	r3, r3, r0, lsr #31
-	mov	r4, r0
-	bne	.L69
-	bl	rand
-	add	r1, r4, r4, lsl #1
-	asr	r1, r1, #1
-	bl	__aeabi_idivmod
-	mov	r3, r5
-	mov	r10, r1
-	ldrd	r0, [sp]
-	mov	r2, fp
-	bl	exponentiateAndMod
-	mov	r8, r0
-	mov	r9, r1
-	mov	r3, r5
-	mov	r2, r4
-	bl	exponentiateAndMod
-	mov	r2, r7
-	bl	decodeMessage
-	bl	free
-	mov	r3, r5
-	mov	r2, r10
-	mov	r0, r8
-	mov	r1, r9
-	bl	exponentiateAndMod
-	mov	r2, r7
-	bl	decodeMessage
-	bl	free
-	b	.L65
-.L73:
-	add	fp, fp, #1
-	b	.L71
-.L75:
-	mov	r9, r6
-	b	.L72
-.L83:
-	.align	2
-.L82:
-	.word	.LC1
-	.word	.LC2
-	.word	.LANCHOR0
-	.size	main, .-main
-	.global	number_of_primes
-	.global	primes
+	ldr	fp, [sp], #4
+	bx	lr
+	.size	intLeftShift, .-intLeftShift
 	.global	powersOf10
-	.global	temp
 	.data
 	.align	3
-	.set	.LANCHOR0,. + 0
-	.type	temp, %object
-	.size	temp, 4
-temp:
-	.word	5
-	.space	4
 	.type	powersOf10, %object
 	.size	powersOf10, 88
 powersOf10:
@@ -584,6 +279,8 @@ powersOf10:
 	.word	1264
 	.word	110568448
 	.word	32868
+	.global	primes
+	.align	2
 	.type	primes, %object
 	.size	primes, 300
 primes:
@@ -662,19 +359,615 @@ primes:
 	.word	5839
 	.word	3517
 	.word	8501
+	.global	number_of_primes
+	.align	2
 	.type	number_of_primes, %object
 	.size	number_of_primes, 4
 number_of_primes:
 	.word	75
-	.section	.rodata.str1.1,"aMS",%progbits,1
+	.global	__aeabi_idivmod
+	.text
+	.align	2
+	.global	gcd
+	.syntax unified
+	.arm
+	.fpu vfpv3-d16
+	.type	gcd, %function
+gcd:
+	@ args = 0, pretend = 0, frame = 16
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #16
+	str	r0, [fp, #-16]
+	str	r1, [fp, #-20]
+.L20:
+	ldr	r3, [fp, #-16]
+	ldr	r1, [fp, #-20]
+	mov	r0, r3
+	bl	__aeabi_idivmod
+	mov	r3, r1
+	str	r3, [fp, #-8]
+	ldr	r3, [fp, #-8]
+	cmp	r3, #0
+	bne	.L18
+	ldr	r3, [fp, #-20]
+	b	.L21
+.L18:
+	ldr	r3, [fp, #-20]
+	str	r3, [fp, #-16]
+	ldr	r3, [fp, #-8]
+	str	r3, [fp, #-20]
+	b	.L20
+.L21:
+	mov	r0, r3
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
+	.size	gcd, .-gcd
+	.global	__aeabi_d2ulz
+	.align	2
+	.global	exponentiateAndMod
+	.syntax unified
+	.arm
+	.fpu vfpv3-d16
+	.type	exponentiateAndMod, %function
+exponentiateAndMod:
+	@ args = 0, pretend = 0, frame = 56
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	vpush.64	{d8}
+	add	fp, sp, #20
+	sub	sp, sp, #56
+	strd	r0, [fp, #-68]
+	str	r2, [fp, #-72]
+	str	r3, [fp, #-76]
+	mov	r2, #1
+	mov	r3, #0
+	strd	r2, [fp, #-28]
+	ldrd	r2, [fp, #-68]
+	strd	r2, [fp, #-44]
+	ldrd	r2, [fp, #-68]
+	strd	r2, [fp, #-52]
+	ldr	r3, [fp, #-72]
+	vmov	s15, r3	@ int
+	vcvt.f64.s32	d7, s15
+	vmov.f64	d0, d7
+	bl	customLog
+	vmov.f64	d8, d0
+	vmov.f64	d0, #2.0e+0
+	bl	customLog
+	vmov.f64	d7, d0
+	vmov.f64	d1, d7
+	vmov.f64	d0, d8
+	bl	doubleDivide
+	vmov	r2, r3, d0
+	mov	r0, r2
+	mov	r1, r3
+	bl	__aeabi_d2ulz
+	mov	r2, #1
+	mov	r3, #0
+	bl	intAdd
+	mov	r2, r0
+	mov	r3, r1
+	mov	r3, r2
+	str	r3, [fp, #-56]
+	mov	r3, #0
+	str	r3, [fp, #-32]
+	b	.L23
+.L26:
+	ldrd	r2, [fp, #-44]
+	ldrd	r0, [fp, #-44]
+	bl	intMult
+	ldr	r3, [fp, #-76]
+	mov	r2, r3
+	asr	r3, r2, #31
+	bl	intMod
+	strd	r0, [fp, #-52]
+	ldr	r3, [fp, #-72]
+	mov	r4, r3
+	asr	r5, r4, #31
+	ldr	r1, [fp, #-32]
+	mov	r0, #1
+	bl	intLeftShift
+	mov	r3, r0
+	mov	r2, r3
+	asr	r3, r2, #31
+	mov	r0, r4
+	mov	r1, r5
+	bl	bitwiseAnd
+	mov	r2, r0
+	mov	r3, r1
+	orrs	r3, r2, r3
+	beq	.L24
+	ldrd	r2, [fp, #-44]
+	ldrd	r0, [fp, #-28]
+	bl	intMult
+	ldr	r3, [fp, #-76]
+	mov	r2, r3
+	asr	r3, r2, #31
+	bl	intMod
+	strd	r0, [fp, #-28]
+	b	.L25
+.L24:
+	mov	r2, #1
+	mov	r3, #0
+	mov	r0, #1
+	mov	r1, #0
+	bl	intMult
+	mov	r2, #1
+	mov	r3, #0
+	bl	intMod
+.L25:
+	ldrd	r2, [fp, #-52]
+	strd	r2, [fp, #-44]
+	ldr	r3, [fp, #-32]
+	mov	r0, r3
+	asr	r1, r0, #31
+	mov	r2, #1
+	mov	r3, #0
+	bl	intAdd
+	mov	r2, r0
+	mov	r3, r1
+	mov	r3, r2
+	str	r3, [fp, #-32]
+.L23:
+	ldr	r2, [fp, #-32]
+	ldr	r3, [fp, #-56]
+	cmp	r2, r3
+	blt	.L26
+	b	.L27
+.L28:
+	mov	r2, #1
+	mov	r3, #0
+	mov	r0, #1
+	mov	r1, #0
+	bl	intMult
+	mov	r2, #1
+	mov	r3, #0
+	bl	intMod
+	mov	r1, #1
+	mov	r0, #1
+	bl	intLeftShift
+	mov	r3, r0
+	mov	r2, r3
+	asr	r3, r2, #31
+	mov	r0, #1
+	mov	r1, #0
+	bl	bitwiseAnd
+	mov	r2, #1
+	mov	r3, #0
+	mov	r0, #1
+	mov	r1, #0
+	bl	intMult
+	mov	r2, #1
+	mov	r3, #0
+	bl	intMod
+	ldr	r3, [fp, #-32]
+	mov	r0, r3
+	asr	r1, r0, #31
+	mov	r2, #1
+	mov	r3, #0
+	bl	intAdd
+	mov	r2, r0
+	mov	r3, r1
+	mov	r3, r2
+	str	r3, [fp, #-32]
+.L27:
+	ldr	r3, [fp, #-32]
+	cmp	r3, #89
+	ble	.L28
+	ldrd	r2, [fp, #-28]
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #20
+	@ sp needed
+	vldm	sp!, {d8}
+	pop	{r4, r5, fp, pc}
+	.size	exponentiateAndMod, .-exponentiateAndMod
+	.section	.rodata
+	.align	2
 .LC0:
 	.ascii	"Invalid character provided: %c (please only provide"
 	.ascii	" a message containing the letters a-j\012\000"
+	.text
+	.align	2
+	.global	encodeMessage
+	.syntax unified
+	.arm
+	.fpu vfpv3-d16
+	.type	encodeMessage, %function
+encodeMessage:
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	add	fp, sp, #12
+	sub	sp, sp, #24
+	str	r0, [fp, #-32]
+	str	r1, [fp, #-36]
+	mov	r2, #0
+	mov	r3, #0
+	strd	r2, [fp, #-28]
+	ldr	r3, [fp, #-36]
+	str	r3, [fp, #-16]
+	b	.L31
+.L34:
+	ldr	r2, [fp, #-36]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	mov	r2, r3
+	ldr	r3, [fp, #-32]
+	add	r3, r3, r2
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	cmp	r3, #122
+	bhi	.L32
+	ldr	r2, [fp, #-36]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	mov	r2, r3
+	ldr	r3, [fp, #-32]
+	add	r3, r3, r2
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	cmp	r3, #96
+	bhi	.L33
+.L32:
+	ldr	r2, [fp, #-36]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	mov	r2, r3
+	ldr	r3, [fp, #-32]
+	add	r3, r3, r2
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	mov	r1, r3
+	movw	r0, #:lower16:.LC0
+	movt	r0, #:upper16:.LC0
+	bl	printf
+	mov	r0, #0
+	bl	exit
+.L33:
+	ldr	r2, [fp, #-36]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	mov	r2, r3
+	ldr	r3, [fp, #-32]
+	add	r3, r3, r2
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	sub	r3, r3, #97
+	mov	r0, r3
+	asr	r1, r0, #31
+	ldr	r3, [fp, #-16]
+	sub	r2, r3, #1
+	movw	r3, #:lower16:powersOf10
+	movt	r3, #:upper16:powersOf10
+	lsl	r2, r2, #3
+	add	r3, r3, r2
+	ldrd	r2, [r3]
+	mul	lr, r2, r1
+	mul	ip, r0, r3
+	add	ip, lr, ip
+	umull	r2, r3, r0, r2
+	add	r1, ip, r3
+	mov	r3, r1
+	ldrd	r0, [fp, #-28]
+	adds	r4, r0, r2
+	adc	r5, r1, r3
+	strd	r4, [fp, #-28]
+	ldr	r3, [fp, #-16]
+	sub	r3, r3, #1
+	str	r3, [fp, #-16]
+.L31:
+	ldr	r3, [fp, #-16]
+	cmp	r3, #0
+	bgt	.L34
+	ldrd	r2, [fp, #-28]
+	mov	r0, r2
+	mov	r1, r3
+	sub	sp, fp, #12
+	@ sp needed
+	pop	{r4, r5, fp, pc}
+	.size	encodeMessage, .-encodeMessage
+	.align	2
+	.global	decodeMessage
+	.syntax unified
+	.arm
+	.fpu vfpv3-d16
+	.type	decodeMessage, %function
+decodeMessage:
+	@ args = 0, pretend = 0, frame = 24
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{r4, r5, fp, lr}
+	add	fp, sp, #12
+	sub	sp, sp, #24
+	strd	r0, [fp, #-28]
+	str	r2, [fp, #-32]
+	ldr	r3, [fp, #-32]
+	add	r3, r3, #1
+	mov	r0, r3
+	bl	malloc
+	mov	r3, r0
+	str	r3, [fp, #-20]
+	mov	r3, #0
+	str	r3, [fp, #-16]
+	b	.L37
+.L38:
+	ldr	r2, [fp, #-32]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	sub	r2, r3, #1
+	movw	r3, #:lower16:powersOf10
+	movt	r3, #:upper16:powersOf10
+	lsl	r2, r2, #3
+	add	r3, r3, r2
+	ldrd	r2, [r3]
+	ldrd	r0, [fp, #-28]
+	bl	__aeabi_uldivmod
+	mov	r2, r0
+	mov	r3, r1
+	uxtb	r2, r2
+	ldr	r3, [fp, #-16]
+	ldr	r1, [fp, #-20]
+	add	r3, r1, r3
+	add	r2, r2, #97
+	uxtb	r2, r2
+	strb	r2, [r3]
+	ldr	r3, [fp, #-16]
+	ldr	r2, [fp, #-20]
+	add	r3, r2, r3
+	ldrb	r3, [r3]	@ zero_extendqisi2
+	sub	r3, r3, #97
+	mov	r0, r3
+	asr	r1, r0, #31
+	ldr	r2, [fp, #-32]
+	ldr	r3, [fp, #-16]
+	sub	r3, r2, r3
+	sub	r2, r3, #1
+	movw	r3, #:lower16:powersOf10
+	movt	r3, #:upper16:powersOf10
+	lsl	r2, r2, #3
+	add	r3, r3, r2
+	ldrd	r2, [r3]
+	mul	lr, r2, r1
+	mul	ip, r0, r3
+	add	ip, lr, ip
+	umull	r2, r3, r0, r2
+	add	r1, ip, r3
+	mov	r3, r1
+	ldrd	r0, [fp, #-28]
+	subs	r4, r0, r2
+	sbc	r5, r1, r3
+	strd	r4, [fp, #-28]
+	ldr	r3, [fp, #-16]
+	add	r3, r3, #1
+	str	r3, [fp, #-16]
+.L37:
+	ldr	r2, [fp, #-16]
+	ldr	r3, [fp, #-32]
+	cmp	r2, r3
+	blt	.L38
+	ldr	r3, [fp, #-20]
+	mov	r0, r3
+	sub	sp, fp, #12
+	@ sp needed
+	pop	{r4, r5, fp, pc}
+	.size	decodeMessage, .-decodeMessage
+	.section	.rodata
+	.align	2
 .LC1:
 	.ascii	"Missing message, please include message as argument"
 	.ascii	"\000"
+	.align	2
 .LC2:
 	.ascii	"This program only supports up to a 5 character mess"
 	.ascii	"age. Please try again with a shorter message\000"
+	.global	__aeabi_idiv
+	.text
+	.align	2
+	.global	main
+	.syntax unified
+	.arm
+	.fpu vfpv3-d16
+	.type	main, %function
+main:
+	@ args = 0, pretend = 0, frame = 80
+	@ frame_needed = 1, uses_anonymous_args = 0
+	push	{fp, lr}
+	add	fp, sp, #4
+	sub	sp, sp, #80
+	str	r0, [fp, #-80]
+	str	r1, [fp, #-84]
+	ldr	r3, [fp, #-80]
+	cmp	r3, #1
+	bgt	.L41
+	movw	r0, #:lower16:.LC1
+	movt	r0, #:upper16:.LC1
+	bl	puts
+	mov	r3, #1
+	b	.L42
+.L41:
+	ldr	r3, [fp, #-84]
+	ldr	r3, [r3, #4]
+	str	r3, [fp, #-24]
+	ldr	r0, [fp, #-24]
+	bl	strlen
+	mov	r3, r0
+	str	r3, [fp, #-28]
+	ldr	r3, [fp, #-28]
+	cmp	r3, #5
+	ble	.L43
+	movw	r0, #:lower16:.LC2
+	movt	r0, #:upper16:.LC2
+	bl	puts
+	mov	r3, #1
+	b	.L42
+.L43:
+	ldr	r1, [fp, #-28]
+	ldr	r0, [fp, #-24]
+	bl	encodeMessage
+	strd	r0, [fp, #-36]
+	mov	r0, #0
+	bl	time
+	mov	r3, r0
+	mov	r0, r3
+	bl	srand
+	mov	r3, #0
+	str	r3, [fp, #-8]
+	mov	r3, #2
+	str	r3, [fp, #-12]
+	mov	r3, #0
+	str	r3, [fp, #-16]
+	b	.L44
+.L45:
+	bl	rand
+	mov	r2, r0
+	movw	r3, #:lower16:number_of_primes
+	movt	r3, #:upper16:number_of_primes
+	ldr	r3, [r3]
+	mov	r1, r3
+	mov	r0, r2
+	bl	__aeabi_idivmod
+	mov	r3, r1
+	mov	r2, r3
+	movw	r3, #:lower16:primes
+	movt	r3, #:upper16:primes
+	ldr	r3, [r3, r2, lsl #2]
+	str	r3, [fp, #-40]
+	bl	rand
+	mov	r2, r0
+	movw	r3, #:lower16:number_of_primes
+	movt	r3, #:upper16:number_of_primes
+	ldr	r3, [r3]
+	mov	r1, r3
+	mov	r0, r2
+	bl	__aeabi_idivmod
+	mov	r3, r1
+	mov	r2, r3
+	movw	r3, #:lower16:primes
+	movt	r3, #:upper16:primes
+	ldr	r3, [r3, r2, lsl #2]
+	str	r3, [fp, #-44]
+	ldr	r3, [fp, #-40]
+	ldr	r2, [fp, #-44]
+	mul	r3, r2, r3
+	str	r3, [fp, #-8]
+	ldr	r3, [fp, #-8]
+	mov	r2, r3
+	asr	r3, r2, #31
+	ldrd	r0, [fp, #-36]
+	cmp	r1, r3
+	cmpeq	r0, r2
+	bhi	.L45
+	ldr	r2, [fp, #-40]
+	ldr	r3, [fp, #-44]
+	cmp	r2, r3
+	beq	.L45
+	ldr	r3, [fp, #-40]
+	sub	r3, r3, #1
+	ldr	r2, [fp, #-44]
+	sub	r2, r2, #1
+	mul	r3, r2, r3
+	str	r3, [fp, #-48]
+	mov	r3, #2
+	str	r3, [fp, #-12]
+	b	.L46
+.L47:
+	ldr	r3, [fp, #-12]
+	add	r3, r3, #1
+	str	r3, [fp, #-12]
+.L46:
+	ldr	r1, [fp, #-48]
+	ldr	r0, [fp, #-12]
+	bl	gcd
+	mov	r3, r0
+	cmp	r3, #1
+	bne	.L47
+	ldr	r3, [fp, #-12]
+	and	r3, r3, #1
+	cmp	r3, #0
+	beq	.L47
+	mov	r3, #0
+	str	r3, [fp, #-20]
+	b	.L48
+.L49:
+	ldr	r3, [fp, #-20]
+	add	r3, r3, #1
+	str	r3, [fp, #-20]
+.L48:
+	ldr	r3, [fp, #-20]
+	ldr	r2, [fp, #-48]
+	mul	r3, r2, r3
+	add	r3, r3, #1
+	ldr	r1, [fp, #-12]
+	mov	r0, r3
+	bl	__aeabi_idivmod
+	mov	r3, r1
+	cmp	r3, #0
+	bne	.L49
+	ldr	r2, [fp, #-16]
+	ldr	r3, [fp, #-48]
+	cmp	r2, r3
+	beq	.L49
+	ldr	r3, [fp, #-20]
+	ldr	r2, [fp, #-48]
+	mul	r3, r2, r3
+	add	r3, r3, #1
+	ldr	r1, [fp, #-12]
+	mov	r0, r3
+	bl	__aeabi_idiv
+	mov	r3, r0
+	str	r3, [fp, #-16]
+.L44:
+	ldr	r2, [fp, #-12]
+	ldr	r3, [fp, #-8]
+	cmp	r2, r3
+	bge	.L45
+	ldr	r3, [fp, #-16]
+	cmp	r3, #0
+	blt	.L45
+	bl	rand
+	ldr	r2, [fp, #-16]
+	mov	r3, r2
+	lsl	r3, r3, #1
+	add	r3, r3, r2
+	lsr	r2, r3, #31
+	add	r3, r2, r3
+	asr	r3, r3, #1
+	mov	r1, r3
+	bl	__aeabi_idivmod
+	mov	r3, r1
+	str	r3, [fp, #-52]
+	ldr	r3, [fp, #-8]
+	ldr	r2, [fp, #-12]
+	ldrd	r0, [fp, #-36]
+	bl	exponentiateAndMod
+	strd	r0, [fp, #-60]
+	ldr	r3, [fp, #-8]
+	ldr	r2, [fp, #-16]
+	ldrd	r0, [fp, #-60]
+	bl	exponentiateAndMod
+	strd	r0, [fp, #-68]
+	ldr	r2, [fp, #-28]
+	ldrd	r0, [fp, #-68]
+	bl	decodeMessage
+	str	r0, [fp, #-72]
+	ldr	r0, [fp, #-72]
+	bl	free
+	ldr	r3, [fp, #-8]
+	ldr	r2, [fp, #-52]
+	ldrd	r0, [fp, #-60]
+	bl	exponentiateAndMod
+	strd	r0, [fp, #-68]
+	ldr	r2, [fp, #-28]
+	ldrd	r0, [fp, #-68]
+	bl	decodeMessage
+	str	r0, [fp, #-72]
+	ldr	r0, [fp, #-72]
+	bl	free
+	mov	r3, #0
+.L42:
+	mov	r0, r3
+	sub	sp, fp, #4
+	@ sp needed
+	pop	{fp, pc}
+	.size	main, .-main
 	.ident	"GCC: (GNU) 8.2.1 20180801 (Red Hat 8.2.1-2)"
 	.section	.note.GNU-stack,"",%progbits
