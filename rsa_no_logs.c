@@ -7,7 +7,7 @@
 #include <math.h>
 #include <time.h>
 #include <string.h>
-#include "arithmetic.c"
+#include "arithmetic_no_logs.c"
 
 // Used for RSA algorithm
 unsigned long long int powersOf10[] = {
