@@ -2,7 +2,7 @@
 This is the repo for Team 22's project.
 </br></br>
 Compile C code using:
-`gcc -o rsa.exe rsa.c`
+`gcc -o rsa.exe rsa.c -lm`
 </br></br>
 
 
