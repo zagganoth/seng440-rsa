@@ -609,98 +609,106 @@ main:
 	sub	sp, sp, #28
 	ldrle	r0, .L152
 	ble	.L151
-	ldr	fp, [r1, #4]
-	mov	r0, fp
+	ldr	r4, [r1, #4]
+	mov	r0, r4
 	bl	strlen
-	cmp	r0, #4
-	str	r0, [sp, #12]
+	cmp	r0, #5
+	str	r0, [sp, #16]
 	bls	.L138
 	ldr	r0, .L152+4
 .L151:
 	bl	puts
-	mov	r3, #1
-	str	r3, [sp, #16]
+	mov	r8, #1
 .L135:
-	ldr	r0, [sp, #16]
+	mov	r0, r8
 	add	sp, sp, #28
 	@ sp needed
 	pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
 .L138:
+	ldr	r1, [sp, #16]
+	mov	r0, r4
+	bl	encodeMessage
+	strd	r0, [sp, #8]
 	mov	r0, #0
 	bl	time
 	bl	srand
 	mov	r5, #0
-	ldr	r8, .L152+8
-.L143:
+	ldr	fp, .L152+8
+.L139:
 	bl	rand
-	ldr	r1, [r8, #396]
+	ldr	r1, [fp, #396]
 	bl	__aeabi_idivmod
-	add	r1, r8, r1, lsl #2
+	add	r1, fp, r1, lsl #2
 	ldr	r9, [r1, #96]
 	bl	rand
-	ldr	r1, [r8, #396]
+	ldr	r1, [fp, #396]
 	bl	__aeabi_idivmod
-	mov	r4, #2
-	add	r1, r8, r1, lsl #2
+	add	r1, fp, r1, lsl #2
 	ldr	r10, [r1, #96]
-	sub	r3, r9, #1
-	sub	r6, r10, #1
+	ldrd	r0, [sp, #8]
 	mul	r7, r10, r9
-	mul	r6, r6, r3
-.L139:
+	asr	r3, r7, #31
+	cmp	r3, r1
+	cmpeq	r7, r0
+	movcc	r3, #1
+	movcs	r3, #0
+	cmp	r9, r10
+	orreq	r3, r3, #1
+	cmp	r3, #0
+	bne	.L139
+	mov	r4, #2
+	sub	r6, r9, #1
+	sub	r3, r10, #1
+	mul	r6, r3, r6
+.L141:
 	mov	r3, r6
 	mov	r0, r4
-.L140:
-	mov	r1, r3
-	str	r3, [sp, #16]
-	bl	__aeabi_idivmod
-	ldr	r3, [sp, #16]
-	subs	r2, r1, #0
-	mov	r0, r3
-	str	r2, [sp, #16]
-	bne	.L144
-	cmp	r3, #1
-	bne	.L141
-	ands	r3, r4, #1
-	beq	.L141
 .L142:
+	mov	r1, r3
+	str	r3, [sp, #20]
+	bl	__aeabi_idivmod
+	ldr	r3, [sp, #20]
+	subs	r8, r1, #0
+	mov	r0, r3
+	bne	.L145
+	cmp	r3, #1
+	bne	.L143
+	ands	r3, r4, #1
+	beq	.L143
+.L144:
 	mov	r0, r3
 	mov	r1, r4
 	str	r3, [sp, #20]
 	bl	__aeabi_idivmod
-	sub	r2, r6, r5
-	clz	r2, r2
-	cmp	r1, #0
-	lsr	r2, r2, #5
-	moveq	r1, r2
+	adds	r1, r1, #0
 	movne	r1, #1
+	cmp	r6, r5
+	orreq	r1, r1, #1
 	ldr	r3, [sp, #20]
 	cmp	r1, #0
 	add	r3, r3, r6
-	bne	.L142
+	bne	.L144
 	lsr	r6, r0, #31
 	cmp	r4, r7
 	orrge	r6, r6, #1
 	cmp	r6, #0
 	mov	r5, r0
-	bne	.L143
+	bne	.L139
 	bl	rand
 	add	r1, r5, r5, lsl #1
 	asr	r1, r1, #1
 	bl	__aeabi_idivmod
-	mov	r8, r1
+	mov	fp, r1
 	mov	r3, r4
 	mov	r2, r10
 	mov	r1, r9
 	ldr	r0, .L152+12
 	bl	printf
-	mov	r2, r8
+	mov	r2, fp
 	mov	r1, r5
 	ldr	r0, .L152+16
 	bl	printf
-	ldr	r1, [sp, #12]
-	mov	r0, fp
-	bl	encodeMessage
+	ldrd	r0, [sp, #8]
 	mov	r3, r7
 	mov	r2, r4
 	bl	exponentiateAndMod
@@ -708,11 +716,10 @@ main:
 	ldr	r4, .L152+20
 	mov	r3, r7
 	mov	r2, r5
-	mov	r10, r0
-	mov	fp, r1
+	strd	r0, [sp, #8]
 	str	r9, [r4, #4]
 	bl	exponentiateAndMod
-	ldr	r2, [sp, #12]
+	ldr	r2, [sp, #16]
 	str	r6, [r4, #4]
 	bl	decodeMessage
 	vldr.32	s15, [r4]
@@ -727,12 +734,11 @@ main:
 	str	r3, [r4]	@ float
 	str	r9, [r4, #4]
 	bl	free
+	ldrd	r0, [sp, #8]
 	mov	r3, r7
-	mov	r2, r8
-	mov	r0, r10
-	mov	r1, fp
+	mov	r2, fp
 	bl	exponentiateAndMod
-	ldr	r2, [sp, #12]
+	ldr	r2, [sp, #16]
 	str	r6, [r4, #4]
 	bl	decodeMessage
 	vldr.32	s15, [r4]
@@ -745,12 +751,12 @@ main:
 	mov	r0, r5
 	bl	free
 	b	.L135
-.L141:
+.L143:
 	add	r4, r4, #1
-	b	.L139
-.L144:
-	ldr	r3, [sp, #16]
-	b	.L140
+	b	.L141
+.L145:
+	mov	r3, r8
+	b	.L142
 .L153:
 	.align	2
 .L152:
@@ -903,7 +909,7 @@ calculatePower:
 	.ascii	"Missing message, please include message as argument"
 	.ascii	"\000"
 .LC2:
-	.ascii	"This program only supports up to a 4 character mess"
+	.ascii	"This program only supports up to a 5 character mess"
 	.ascii	"age. Please try again with a shorter message\000"
 .LC3:
 	.ascii	"\012Generated RSA values:\012P: %d Q: %d E: %d\012\000"
