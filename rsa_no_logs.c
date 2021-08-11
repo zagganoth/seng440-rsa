@@ -37,14 +37,14 @@ int gcd(int a, int h) {
 
 unsigned long long int exponentiateAndMod(unsigned long long int base, int exponent, int mod) {
   unsigned long long int zi = 1;
-  int i = 0;
+  int i;
   unsigned long long int pi = base;
   unsigned long long int pi1 = base;
   
   //Number of bits in exponent is given by log base 2 of exponent + 1
   int n = intAdd( doubleDivide(customLog(exponent), customLog(2)), 1);
 
-  while(i < n) {
+  for(i^=i;!(i&n);i = intAdd(i,1)) {
     pi1 = intMod(intMult(pi, pi), mod);
     
     if(bitwiseAnd(exponent, intLeftShift(1,i))) {
@@ -55,17 +55,14 @@ unsigned long long int exponentiateAndMod(unsigned long long int base, int expon
     }
 	
     pi = pi1;
-	
-    i = intAdd(i, 1);
   }
   
   // Regardless of size of n, continue performing a series of useless operations to ensure a similar level of power consumption.
-  while(i < 90) {
+  for(;i < 90;i = intAdd(i,1)) {
     intMod(intMult(1,1), 1);
     bitwiseAnd(1, intLeftShift(1,1));
     intMod(intMult(1,1), 1);
 	
-    i = intAdd(i, 1);
   }
 
   return zi;

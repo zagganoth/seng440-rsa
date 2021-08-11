@@ -48,7 +48,7 @@ unsigned long long int exponentiateAndMod(unsigned long long int base, int expon
   //Number of bits in exponent is given by log base 2 of exponent + 1
   int n = intAdd( doubleDivide(customLog(exponent, calculatePower, &currentDrawn), customLog(2, calculatePower, &currentDrawn), calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
 
-  while(i < n) {
+  for(i^=i;!(i&n);i = intAdd(i,1, calculatePower, &currentDrawn)) {
     pi1 = intMod(intMult(pi, pi, calculatePower, &currentDrawn), mod, calculatePower, &currentDrawn);
     
     if(bitwiseAnd(exponent, intLeftShift(1,i, calculatePower, &currentDrawn), calculatePower, &currentDrawn)) {
@@ -57,19 +57,14 @@ unsigned long long int exponentiateAndMod(unsigned long long int base, int expon
     else {
       intMod(intMult(1, 1, calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
     }
-	
     pi = pi1;
-	
-    i = intAdd(i, 1, calculatePower, &currentDrawn);
   }
   
   // Regardless of size of n, continue performing a series of useless operations to ensure a similar level of power consumption.
-  while(i < 90) {
-    intMod(intMult(1,1,calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
-    bitwiseAnd(1, intLeftShift(1,1,calculatePower,&currentDrawn), calculatePower, &currentDrawn);
+  for(;i < 90;i = intAdd(i,1, calculatePower, &currentDrawn)) {
     intMod(intMult(1,1, calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
-	
-    i = intAdd(i, 1, calculatePower, &currentDrawn);
+    bitwiseAnd(1, intLeftShift(1,1, calculatePower, &currentDrawn), calculatePower, &currentDrawn);
+    intMod(intMult(1,1, calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
   }
 
   return zi;
