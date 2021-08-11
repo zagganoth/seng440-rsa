@@ -48,7 +48,7 @@ unsigned long long int exponentiateAndMod(unsigned long long int base, int expon
   //Number of bits in exponent is given by log base 2 of exponent + 1
   int n = intAdd( doubleDivide(customLog(exponent, calculatePower, &currentDrawn), customLog(2, calculatePower, &currentDrawn), calculatePower, &currentDrawn), 1, calculatePower, &currentDrawn);
 
-  for(i^=i;!(i&n);i = intAdd(i,1, calculatePower, &currentDrawn)) {
+  for(i^=i;i < n;i = intAdd(i,1, calculatePower, &currentDrawn)) {
     pi1 = intMod(intMult(pi, pi, calculatePower, &currentDrawn), mod, calculatePower, &currentDrawn);
     
     if(bitwiseAnd(exponent, intLeftShift(1,i, calculatePower, &currentDrawn), calculatePower, &currentDrawn)) {

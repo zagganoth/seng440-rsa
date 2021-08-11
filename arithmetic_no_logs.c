@@ -20,45 +20,45 @@
 #define LOG_CURRENT 20
 
 //Dummy variable (should be stored in register) to perform our useless operations on when equalizing power usage across operations
-int temp = 5;
+
 
 unsigned long long int intMult(unsigned long long int a, unsigned long long int b) {
   // The +1 is to prevent a later division by 0
-  temp = (temp + temp / temp) + 1;
+  register int temp = ((a + b) / a) + 1;
   return a*b;
 }
 
 unsigned long long int intAdd(unsigned long long int a, unsigned long long int b) {
-  temp = (temp * temp / temp) + 1;
+  register int temp = (a * b / a) + 1;
   return a+b;
 }
 
 unsigned long long int intDivide(unsigned long long int a, unsigned long long int b) {
-  temp = (temp * temp + temp) + 1;
+  register int temp = (a * b + a) + 1;
   return a/b;
 }
 
 double doubleDivide(double a, double b) {
-  temp = (temp * temp + temp) + 1; 
+  register int temp = (a * b + a) + 1; 
   return a/b;
 }
 
 double customLog(double a) {
-  temp = temp + 1;
+  register int temp = temp + 1;
   return log(a);
 }
 
 unsigned long long int intMod(unsigned long long int a, unsigned long long int b) {
-  temp = (temp + temp) + 1;
+  register int temp = (a + b) + 1;
   return a % b;
 }
 
 unsigned long long int bitwiseAnd(unsigned long long int a, unsigned long long int b) {
-  temp = (temp & temp & temp * temp / temp) + 1;
+  register int temp = (a & b & a * b / a) + 1;
   return a & b;
 }
 
 int intLeftShift(int a, int b) {
-  temp = (temp << temp * temp / temp) + 1;
+  register int temp = (a << b * a / b) + 1;
   return a << b; 
 }
